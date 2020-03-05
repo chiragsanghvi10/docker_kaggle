@@ -4,8 +4,6 @@ FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu16.04 AS nvidia
 FROM gcr.io/kaggle-images/python-tensorflow-whl:2.1.0-py36-2 as tensorflow_whl
 FROM gcr.io/kaggle-images/python:${BASE_TAG}
 
-ADD clean-layer.sh  /tmp/clean-layer.sh
-
 # Cuda support
 COPY --from=nvidia /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/
 COPY --from=nvidia /etc/apt/sources.list.d/nvidia-ml.list /etc/apt/sources.list.d/
@@ -45,13 +43,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libnccl-dev=2.5.6-1+cuda$CUDA_MAJOR_VERSION.$CUDA_MINOR_VERSION && \
     ln -s /usr/local/cuda-$CUDA_MAJOR_VERSION.$CUDA_MINOR_VERSION /usr/local/cuda && \
     ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1 && \
-    /tmp/clean-layer.sh
+        # Delete files that pip caches when installing a package.
+        rm -rf /root/.cache/pip/* && \
+        # Delete old downloaded archive files
+        apt-get autoremove -y && \
+        # Delete downloaded archive files
+        apt-get clean && \
+        # Ensures the current working directory won't be deleted
+        cd /usr/local/src/ && \
+        # Delete source files used for building binaries
+        rm -rf /usr/local/src/* && \
+        # Delete conda downloaded tarballs
+        conda clean -y --tarballs
 
 # Install OpenCL & libboost (required by LightGBM GPU version)
 RUN apt-get install -y ocl-icd-libopencl1 clinfo libboost-all-dev && \
     mkdir -p /etc/OpenCL/vendors && \
     echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
-    /tmp/clean-layer.sh
+        # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Install LightGBM with GPU
 RUN pip uninstall -y lightgbm && \
@@ -66,7 +86,18 @@ RUN pip uninstall -y lightgbm && \
     python setup.py install --precompile && \
     mkdir -p /etc/OpenCL/vendors && \
     echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
-    /tmp/clean-layer.sh
+        # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Install JAX
 ENV JAX_PYTHON_VERSION=cp36
@@ -87,14 +118,36 @@ RUN pip uninstall -y tensorflow && \
     pip uninstall -y mxnet && \
     # b/126259508 --no-deps prevents numpy from being downgraded.
     pip install --no-deps mxnet-cu$CUDA_MAJOR_VERSION$CUDA_MINOR_VERSION && \
-    /tmp/clean-layer.sh
+        # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Install GPU-only packages
 RUN pip install pycuda && \
     pip install cupy-cuda$CUDA_MAJOR_VERSION$CUDA_MINOR_VERSION && \
     pip install pynvrtc && \
     pip install nnabla-ext-cuda$CUDA_MAJOR_VERSION$CUDA_MINOR_VERSION && \
-    /tmp/clean-layer.sh
+        # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Re-add TensorBoard Jupyter extension patch
 # b/139212522 re-enable TensorBoard once solution for slowdown is implemented.
