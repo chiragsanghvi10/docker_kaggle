@@ -4,13 +4,23 @@ ARG TENSORFLOW_VERSION=2.1.0
 FROM gcr.io/kaggle-images/python-tensorflow-whl:${TENSORFLOW_VERSION}-py36-2 as tensorflow_whl
 FROM continuumio/anaconda3:${BASE_TAG}
 
-ADD clean-layer.sh  /tmp/clean-layer.sh
 ADD patches/nbconvert-extensions.tpl /opt/kaggle/nbconvert-extensions.tpl
 
 # This is necessary for apt to access HTTPS sources
 RUN apt-get update && \
     apt-get install apt-transport-https && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
     # Use a fixed apt-get repo to stop intermittent failures due to flaky httpredir connections,
     # as described by Lionel Chan at http://stackoverflow.com/a/37426929/5881346
@@ -19,7 +29,18 @@ RUN sed -i "s/httpredir.debian.org/debian.uchicago.edu/" /etc/apt/sources.list &
     # Work to upgrade to Python 3.7 can be found on this branch: https://github.com/Kaggle/docker-python/blob/upgrade-py37/Dockerfile
     conda install -y python=3.6.6 && \
     pip install --upgrade pip && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # The anaconda base image includes outdated versions of these packages. Update them to include the latest version.
 # b/150498764 distributed 2.11.0 fails at import while trying to reach out to 8.8.8.8 since the network is disabled in our hermetic tests.
@@ -42,13 +63,35 @@ RUN pip install distributed==2.10.0 && \
     wget --no-verbose https://github.com/ImageMagick/ImageMagick/archive/7.0.8-65.tar.gz && \
     tar xzf 7.0.8-65.tar.gz && cd `ls -d ImageMagick-*` && pwd && ls -al && ./configure && \
     make -j $(nproc) && make install && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Install tensorflow from a pre-built wheel
 COPY --from=tensorflow_whl /tmp/tensorflow_cpu/*.whl /tmp/tensorflow_cpu/
 RUN pip install /tmp/tensorflow_cpu/tensorflow*.whl && \
     rm -rf /tmp/tensorflow_cpu && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 RUN apt-get install -y libfreetype6-dev && \
     apt-get install -y libglib2.0-0 libxext6 libsm6 libxrender1 libfontconfig1 --fix-missing && \
@@ -109,7 +152,18 @@ RUN apt-get install -y libfreetype6-dev && \
     # Stop-words
     pip install stop-words && \
     pip install --upgrade scikit-image && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Make sure the dynamic linker finds the right libstdc++
 ENV LD_LIBRARY_PATH=/opt/conda/lib
@@ -142,7 +196,18 @@ RUN apt-get -y install zlib1g-dev liblcms2-dev libwebp-dev libgeos-dev && \
     wget --no-verbose --no-check-certificate -i latest -O h2o.zip && rm latest && \
     unzip h2o.zip && rm h2o.zip && cp h2o-*/h2o.jar . && \
     pip install `find . -name "*whl"` && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # b/128333086: Set PROJ_LIB to points to the proj4 cartographic library.
 ENV PROJ_LIB=/opt/conda/share/proj
@@ -177,7 +242,18 @@ RUN pip install scipy && \
     pip install git+git://github.com/scikit-learn-contrib/py-earth.git@issue191 && \
     pip install essentia && \
     conda install -y pytorch torchvision torchaudio cpuonly -c pytorch && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # vtk with dependencies
 RUN apt-get install -y libgl1-mesa-glx && \
@@ -185,7 +261,18 @@ RUN apt-get install -y libgl1-mesa-glx && \
     # xvfbwrapper with dependencies
     apt-get install -y xvfb && \
     pip install xvfbwrapper && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 RUN pip install mpld3 && \
     pip install mplleaflet && \
@@ -292,7 +379,18 @@ RUN pip install mpld3 && \
     pip install eli5 && \
     pip install implicit && \
     pip install dask-ml[xgboost] && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 RUN pip install kmeans-smote --no-dependencies && \
     # Add google PAIR-code Facets
@@ -311,7 +409,18 @@ RUN pip install kmeans-smote --no-dependencies && \
     pip install glmnet_py && \
     pip install lime && \
     pip install memory_profiler && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # install cython & cysignals before pyfasttext
 RUN pip install --upgrade cython && \
@@ -352,7 +461,18 @@ RUN pip install --upgrade cython && \
     # Required to display Altair charts in Jupyter notebook
     pip install vega3 && \
     jupyter nbextension install --sys-prefix --py vega3 && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Fast.ai and dependencies
 RUN pip install bcolz && \
@@ -413,7 +533,18 @@ RUN pip install bcolz && \
     pip install allennlp && \
     # b/149359379 remove once allennlp 1.0 is released which won't cause a spacy downgrade.
     pip install spacy==2.2.3 && python -m spacy download en && python -m spacy download en_core_web_lg && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
     ###########
     #
@@ -476,7 +607,18 @@ RUN pip install flashtext && \
     # b/149905611 The geopandas tests are broken with the version 0.7.0
     pip install geopandas==0.6.3 && \
     pip install nnabla && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Tesseract and some associated utility packages
 RUN apt-get install tesseract-ocr -y && \
@@ -485,7 +627,18 @@ RUN apt-get install tesseract-ocr -y && \
     pip install pdf2image && \
     pip install PyPDF && \
     pip install pyocr && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 ENV TESSERACT_PATH=/usr/bin/tesseract
 
 # Install vowpalwabbit
@@ -494,7 +647,18 @@ RUN apt-get install -y libboost-dev libboost-program-options-dev libboost-system
     apt-get install -y libboost-python-dev default-jdk && \
     ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so && \
     pip install vowpalwabbit && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # For Facets
 ENV PYTHONPATH=$PYTHONPATH:/opt/facets/facets_overview/python/
@@ -511,7 +675,18 @@ RUN pip install --upgrade dask && \
     sed -i "s/^.*Matplotlib is building the font cache using fc-list.*$/# Warning removed by Kaggle/g" /opt/conda/lib/python3.6/site-packages/matplotlib/font_manager.py && \
     # Make matplotlib output in Jupyter notebooks display correctly
     mkdir -p /etc/ipython/ && echo "c = get_config(); c.IPKernelApp.matplotlib = 'inline'" > /etc/ipython/ipython_config.py && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # gcloud SDK https://cloud.google.com/sdk/docs/quickstart-debian-ubuntu
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" \
@@ -519,7 +694,18 @@ RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.c
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
     apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
     apt-get update -y && apt-get install google-cloud-sdk -y && \
-    /tmp/clean-layer.sh
+    # Delete files that pip caches when installing a package.
+    rm -rf /root/.cache/pip/* && \
+    # Delete old downloaded archive files
+    apt-get autoremove -y && \
+    # Delete downloaded archive files
+    apt-get clean && \
+    # Ensures the current working directory won't be deleted
+    cd /usr/local/src/ && \
+    # Delete source files used for building binaries
+    rm -rf /usr/local/src/* && \
+    # Delete conda downloaded tarballs
+    conda clean -y --tarballs
 
 # Add BigQuery client proxy settings
 ENV PYTHONUSERBASE "/root/.local"
